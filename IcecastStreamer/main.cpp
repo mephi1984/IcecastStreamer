@@ -35,7 +35,7 @@ boost::thread_group threadPool;
 
 //IcecastStreamer streamer{ ioService, "vm493.vmware.nano.lv", "80" };
 #ifdef _WIN32
-IcecastStreamer streamer{ ioService, "127.0.0.1", "80" };
+IcecastStreamer streamer{ ioService, "127.0.0.1", "8000" };
 
 #else
 //IcecastStreamer streamer{ ioService, "528records.com", "8000" };
@@ -143,10 +143,10 @@ int main(int argc, char* argv[])
 	};
 #else
 	std::vector<std::string> listOfFiles = { 
-		"E:/music/168446101.aac",
-		"E:/music/bala.wav",
-		"E:/music/Guano Apes - Open Your Eyes.mp3",
-		"E:/music/death note.ogg"
+		//"E:/music/168446101.aac",
+		//"E:/music/bala.wav",
+		"C:/music/ETM_Night_Run (MIX) - 02.mp3"//,
+		//"E:/music/death note.ogg"
 	};
 #endif
 	// !!! Pass a check that all files has extensions !!!

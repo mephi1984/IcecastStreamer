@@ -437,7 +437,7 @@ bool IcecastStreamer::streamFileLoopedInner(std::shared_ptr<boost::asio::ip::tcp
 	request_stream << "Expect: 100-continue" << NEWLINE;
 #ifdef _WIN32
 
-	request_stream << "Authorization: Basic c291cmNlOnNvdXJjZV9wYXNzd29yZA==" << NEWLINE;
+	request_stream << "Authorization: Basic c291cmNlOnNvdXJjZVBhc3N3b3JkMDAx" << NEWLINE;
 #else
 	//request_stream << "Authorization: Basic c291cmNlOkQ0a3UyUVRTR1pUbmJOQjhUMVU3" << NEWLINE;
 	request_stream << "Authorization: Basic c291cmNlOnNvdXJjZV9wYXNzd29yZA==" << NEWLINE;
