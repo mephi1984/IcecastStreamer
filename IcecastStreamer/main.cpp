@@ -88,6 +88,109 @@ void streamPlaylist(const std::vector<std::string>& playlist)
 	promise->get_future().wait();
 }
 
+
+
+
+int recordCallback(const void* inputBuffer, void* outputBuffer,
+	unsigned long framesPerBuffer,
+	const PaStreamCallbackTimeInfo* timeInfo,
+	PaStreamCallbackFlags statusFlags,
+	void* userData) {
+	AudioDataList* dataList = static_cast<AudioDataList*>(userData);
+	const short* input = static_cast<const short*>(inputBuffer);
+
+	if (inputBuffer == nullptr) return paContinue;
+
+	dataList->m.lock();
+
+	if (dataList->audioData.size() == 0)
+	{
+		dataList->audioData.emplace_back();
+	}
+
+	AudioData& data = dataList->audioData.back();
+
+	size_t samplesReady = framesPerBuffer * NUM_CHANNELS;
+
+	if (data.currentSample + samplesReady >= MAX_SAMPLES) {
+		size_t samplesToCopy = MAX_SAMPLES - data.currentSample;
+		std::copy(input, input + samplesToCopy, data.buffer + data.currentSample);
+
+		size_t leftover = samplesReady - samplesToCopy;
+
+		//Mark data block as ready:
+		data.currentSample = 0;
+		data.ready = true;
+
+		dataList->audioData.emplace_back();
+
+		// Warning! Here might be overflow
+		if (leftover > MAX_SAMPLES)
+		{
+			throw std::runtime_error("Too much!");
+		}
+
+		if (leftover > 0)
+		{
+			AudioData& newData = dataList->audioData.back();
+
+			std::copy(input + samplesToCopy, input + samplesReady, newData.buffer);
+			newData.currentSample = leftover;
+		}
+	}
+	else
+	{
+		std::copy(input, input + samplesReady, data.buffer + data.currentSample);
+		data.currentSample += samplesReady;
+	}
+	dataList->m.unlock();
+	return paContinue;
+}
+
+void streamAudio()
+{
+	auto promise = std::make_shared<std::promise<void>>();
+
+	std::shared_ptr<AudioDataList> audioDataList = std::make_shared<AudioDataList>();
+
+	Pa_Initialize();
+
+
+
+	//AudioData data;
+	//data.maxSamples = SAMPLE_RATE * NUM_CHANNELS * 5;  // Запись 5 секунд
+	//data.buffer = new short[data.maxSamples];
+	//data.currentSample = 0;
+
+	PaStream* stream;
+	Pa_OpenDefaultStream(&stream, NUM_CHANNELS, 0, paInt16, SAMPLE_RATE,
+		FRAMES_PER_BUFFER, recordCallback, audioDataList.get());
+	Pa_StartStream(stream);
+
+	std::cout << "Recording for 5 seconds..." << std::endl;
+	Pa_Sleep(5000);
+
+	ioService.post([audioDataList, promise]()
+		{
+			std::cout << "StreamPlaylist inner 1" << std::endl;
+			//streamer.streamFile(contentToStream, promise);
+
+			streamer.streamVoice(audioDataList, promise);
+		});
+
+
+	std::cout << "Started streaming, continue recording..." << std::endl;
+
+	std::cout << "Press any key to top:" << std::endl;
+	_getwch();
+
+	Pa_StopStream(stream);
+	Pa_CloseStream(stream);
+	Pa_Terminate();
+
+	promise->get_future().wait();
+}
+
 /*int main(int argc, char* argv[])
 {
 #ifdef _WIN32
@@ -145,7 +248,9 @@ int main(int argc, char* argv[])
 	std::vector<std::string> listOfFiles = { 
 		//"E:/music/168446101.aac",
 		//"E:/music/bala.wav",
-		"C:/music/ETM_Night_Run (MIX) - 02.mp3"//,
+		//"C:/music/ETM_Night_Run (MIX) - 02.mp3"//,
+		"C:\\Work\\Projects\\VoiceWriter\\recording.wav",
+		"C:\\Work\\Projects\\VoiceWriter\\recording.wav"
 		//"E:/music/death note.ogg"
 	};
 #endif
@@ -162,7 +267,9 @@ int main(int argc, char* argv[])
 
 	do
 	{
-		streamPlaylist(listOfFiles);
+		//streamPlaylist(listOfFiles);
+
+		streamAudio();
 
 
 	} while (true);

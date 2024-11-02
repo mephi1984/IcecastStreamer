@@ -116,16 +116,16 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <AdditionalIncludeDirectories>C:\Work\Projects\libogg\include;C:\Work\Projects\vorbis\include;C:\Work\Projects\minimp3;C:\Boost\include\boost-1_84;C:\Work\Projects\faad2\include;.</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Work\Projects\portaudio\build\install\include;C:\Work\Projects\libogg\include;C:\Work\Projects\vorbis\include;C:\Work\Projects\minimp3;C:\Boost\include\boost-1_84;C:\Work\Projects\faad2\include;.</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>vorbis.lib;libogg_static.lib;faad.lib</AdditionalDependencies>
+      <AdditionalDependencies>portaudio.lib;vorbis.lib;libogg_static.lib;faad.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention>
       </DataExecutionPrevention>
-      <AdditionalLibraryDirectories>C:\Work\Projects\libogg\win32\VS2010\x64\Debug\;C:\Work\Projects\vorbis\build\lib\Debug;C:\Work\Projects\faad2\build\Debug;C:\Boost\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Work\Projects\portaudio\build\install\lib;C:\Work\Projects\libogg\win32\VS2010\x64\Debug\;C:\Work\Projects\vorbis\build\lib\Debug;C:\Work\Projects\faad2\build\Debug;C:\Boost\lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -178,6 +178,7 @@
     <ClCompile Include="icecast\IcecastStreamer.cpp" />
     <ClCompile Include="mp3\Mp3DecoderNew.cpp" />
     <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="Voice.cpp" />
     <ClCompile Include="wave\WaveDecoder.cpp" />
     <ClCompile Include="wave\WaveFile.cpp" />
   </ItemGroup>
@@ -187,6 +188,7 @@
     <ClInclude Include="icecast\IcecastStreamer.h" />
     <ClInclude Include="mp3\Mp3DecoderNew.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="Voice.h" />
     <ClInclude Include="wave\WaveDecoder.h" />
     <ClInclude Include="wave\WaveFile.h" />
   </ItemGroup>

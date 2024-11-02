@@ -9,6 +9,7 @@
 #include <vector>
 #include <string>
 #include <future>
+#include "Voice.h"
 
 //OpenSSL stuff -- Vladislav Khorev vladislav.khorev@fishrungames.com
 //#define SSL_R_SHORT_READ 219
@@ -78,6 +79,10 @@ public:
 	void streamFileLooped(const ContentToStream& contentToStream, std::shared_ptr<std::promise<void>> promise);
 	void streamFileLooped(boost::asio::ip::tcp::endpoint endpoint, const ContentToStream& contentToStream, std::shared_ptr<std::promise<void>> promise);
 	bool streamFileLoopedInner(std::shared_ptr<boost::asio::ip::tcp::socket> socket, const Uploading& uploading);
+
+	void streamVoice(std::shared_ptr<AudioDataList> audioData, std::shared_ptr<std::promise<void>> promise);
+	void streamVoice(boost::asio::ip::tcp::endpoint endpoint, std::shared_ptr<AudioDataList> audioData, std::shared_ptr<std::promise<void>> promise);
+	bool streamVoiceInner(std::shared_ptr<boost::asio::ip::tcp::socket> socket, std::shared_ptr<AudioDataList> audioData);
 
 	//std::vector<std::string> downloadPlaylist();
 	//std::vector<std::string> loadPlaylistFromFile();
