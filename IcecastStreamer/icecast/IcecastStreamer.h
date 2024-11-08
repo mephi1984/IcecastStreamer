@@ -39,7 +39,29 @@ struct ContentToStream
 		: playlist (newPlaylist)
 	{
 	}
+};
 
+struct CrossFadeSelector
+{
+	virtual double audioDataVolume() = 0;
+	virtual double voiceVolume() = 0;
+	virtual void update() = 0;
+};
+
+struct ContentToStreamWithAudio
+{
+	CrossFadeSelector& crossFadeSelector;
+
+	std::vector<std::string> playlist;
+
+	std::shared_ptr<AudioDataList> audioData;
+
+
+	ContentToStreamWithAudio(CrossFadeSelector& inCrossFadeSelector, const std::vector<std::string>& newPlaylist)
+		: crossFadeSelector(inCrossFadeSelector)
+		, playlist(newPlaylist)
+	{
+	}
 };
 
 struct Uploading
@@ -83,6 +105,10 @@ public:
 	void streamVoice(std::shared_ptr<AudioDataList> audioData, std::shared_ptr<std::promise<void>> promise);
 	void streamVoice(boost::asio::ip::tcp::endpoint endpoint, std::shared_ptr<AudioDataList> audioData, std::shared_ptr<std::promise<void>> promise);
 	bool streamVoiceInner(std::shared_ptr<boost::asio::ip::tcp::socket> socket, std::shared_ptr<AudioDataList> audioData);
+
+	void streamComplexLooped(const ContentToStreamWithAudio& contentToStream, std::shared_ptr<std::promise<void>> promise);
+	void streamComplexLooped(boost::asio::ip::tcp::endpoint endpoint, const ContentToStreamWithAudio& contentToStream, std::shared_ptr<std::promise<void>> promise);
+	bool streamComplexLoopedInner(std::shared_ptr<boost::asio::ip::tcp::socket> socket, const ContentToStreamWithAudio& contentToStream);
 
 	//std::vector<std::string> downloadPlaylist();
 	//std::vector<std::string> loadPlaylistFromFile();

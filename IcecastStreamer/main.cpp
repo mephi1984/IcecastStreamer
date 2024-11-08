@@ -155,20 +155,46 @@ void streamAudio()
 
 	Pa_Initialize();
 
-
-
-	//AudioData data;
-	//data.maxSamples = SAMPLE_RATE * NUM_CHANNELS * 5;  // Запись 5 секунд
-	//data.buffer = new short[data.maxSamples];
-	//data.currentSample = 0;
+	
+	//Regular recording
 
 	PaStream* stream;
 	Pa_OpenDefaultStream(&stream, NUM_CHANNELS, 0, paInt16, SAMPLE_RATE,
 		FRAMES_PER_BUFFER, recordCallback, audioDataList.get());
 	Pa_StartStream(stream);
+	
 
-	std::cout << "Recording for 5 seconds..." << std::endl;
-	Pa_Sleep(5000);
+	/*
+	int numDevices = Pa_GetDeviceCount();
+	if (numDevices < 0) {
+		std::cerr << "Ошибка при получении списка устройств: " << Pa_GetErrorText(numDevices) << std::endl;
+		return;
+	}
+
+	std::cout << "Список доступных аудиоустройств:\n";
+	for (int i = 0; i < numDevices; ++i) {
+		const PaDeviceInfo* deviceInfo = Pa_GetDeviceInfo(i);
+		std::cout << "Device " << i << ": " << deviceInfo->name << "\n";
+	}*/
+	
+	/*
+	//Loopback
+	
+	//PaDeviceIndex deviceIndex = Pa_GetHostApiInfo(PaHostApiTypeId::paWASAPI)->defaultOutputDevice;
+	PaDeviceIndex deviceIndex = 3;
+	PaStreamParameters inputParameters;
+	inputParameters.device = deviceIndex;
+	inputParameters.channelCount = NUM_CHANNELS;
+	inputParameters.sampleFormat = paInt16;
+	inputParameters.suggestedLatency = Pa_GetDeviceInfo(deviceIndex)->defaultLowInputLatency;
+	inputParameters.hostApiSpecificStreamInfo = nullptr;
+	
+	PaStream* stream;
+	Pa_OpenStream(&stream, &inputParameters, nullptr, SAMPLE_RATE, FRAMES_PER_BUFFER, paClipOff, recordCallback, audioDataList.get());
+	Pa_StartStream(stream);*/
+	
+	std::cout << "Recording for 1 seconds..." << std::endl;
+	Pa_Sleep(1000);
 
 	ioService.post([audioDataList, promise]()
 		{
@@ -183,6 +209,154 @@ void streamAudio()
 
 	std::cout << "Press any key to top:" << std::endl;
 	_getwch();
+
+	Pa_StopStream(stream);
+	Pa_CloseStream(stream);
+	Pa_Terminate();
+
+	promise->get_future().wait();
+}
+
+const double CROSSFADE_STEP = 1.0;
+
+struct CustomCrossFader : public CrossFadeSelector
+{
+	volatile bool doSwitchToVoice = false;
+	double crossFadeTimer = 0.0; //0 - audio, 1 - voice
+
+	void switchToVoice()
+	{
+		doSwitchToVoice = true;
+	}
+
+	void switchToAudio()
+	{
+		doSwitchToVoice = false;
+	}
+
+	virtual double audioDataVolume() override
+	{
+		return (1.0 - crossFadeTimer) * 0.08 + 0.02;
+
+	}
+	virtual double voiceVolume() override
+	{
+		return crossFadeTimer * 20.0;
+	}
+
+	virtual void update() override
+	{
+		if (doSwitchToVoice)
+		{
+			crossFadeTimer += CROSSFADE_STEP;
+			if (crossFadeTimer >= 1.0)
+			{
+				crossFadeTimer = 1.0;
+			}
+		}
+		else
+		{
+			crossFadeTimer -= CROSSFADE_STEP;
+			if (crossFadeTimer <= 0.0)
+			{
+				crossFadeTimer = 0.0;
+			}
+		}
+	}
+};
+
+
+
+void streamAudioAndPlaylist()
+{
+	auto promise = std::make_shared<std::promise<void>>();
+
+	std::shared_ptr<AudioDataList> audioDataList = std::make_shared<AudioDataList>();
+
+	Pa_Initialize();
+
+
+	//Regular recording
+	/*
+	PaStream* stream;
+	Pa_OpenDefaultStream(&stream, NUM_CHANNELS, 0, paInt16, SAMPLE_RATE,
+		FRAMES_PER_BUFFER, recordCallback, audioDataList.get());
+	Pa_StartStream(stream);
+	*/
+
+	
+	int numDevices = Pa_GetDeviceCount();
+	if (numDevices < 0) {
+		std::cerr << "Ошибка при получении списка устройств: " << Pa_GetErrorText(numDevices) << std::endl;
+		return;
+	}
+
+	std::cout << "Список доступных аудиоустройств:\n";
+	for (int i = 0; i < numDevices; ++i) {
+		const PaDeviceInfo* deviceInfo = Pa_GetDeviceInfo(i);
+		std::cout << "Device " << i << ": " << deviceInfo->name << "\n";
+	}
+
+	
+	//Loopback
+
+	//PaDeviceIndex deviceIndex = Pa_GetHostApiInfo(PaHostApiTypeId::paWASAPI)->defaultOutputDevice;
+	PaDeviceIndex deviceIndex = 18;
+	PaStreamParameters inputParameters;
+	inputParameters.device = deviceIndex;
+	inputParameters.channelCount = NUM_CHANNELS;
+	inputParameters.sampleFormat = paInt16;
+	inputParameters.suggestedLatency = Pa_GetDeviceInfo(deviceIndex)->defaultLowInputLatency;
+	inputParameters.hostApiSpecificStreamInfo = nullptr;
+
+	PaStream* stream;
+	Pa_OpenStream(&stream, &inputParameters, nullptr, SAMPLE_RATE, FRAMES_PER_BUFFER, paClipOff, recordCallback, audioDataList.get());
+	Pa_StartStream(stream);
+
+	std::cout << "Recording for 5.0 seconds..." << std::endl;
+	Pa_Sleep(5000);
+
+	CustomCrossFader c;
+	ContentToStreamWithAudio content{c, { "C:/music/ETM_Night_Run (MIX) - 02.mp3", "C:/music/ETM_Night_Run (MIX) - 02.mp3" } };
+	
+	content.audioData = audioDataList;
+
+
+	ioService.post([content, promise]()
+		{
+			std::cout << "StreamPlaylist inner 1" << std::endl;
+
+
+			streamer.streamComplexLooped(content, promise);
+			//streamer.streamFile(contentToStream, promise);
+
+			//streamer.streamVoice(audioDataList, promise);
+		});
+
+
+	std::cout << "Started streaming, continue recording. Press 0 to stop..." << std::endl;
+	wchar_t ch = 0;
+
+	while (ch != L'0')
+	{
+		ch = _getwch(); // Чтение символа с клавиатуры
+
+		if (ch == L'1') {
+			std::cout << "Switch to voice" << std::endl;
+			c.switchToVoice();
+		}
+		else if (ch == L'2') {
+			std::cout << "Switch to audio" << std::endl;
+			c.switchToAudio();
+		}
+		else {
+			
+		}
+
+	}
+
+	//std::cout << "Press any key to top:" << std::endl;
+	//_getwch();
 
 	Pa_StopStream(stream);
 	Pa_CloseStream(stream);
@@ -206,6 +380,11 @@ void streamAudio()
 
 int main(int argc, char* argv[])
 {
+	//setlocale(LC_ALL, "Russian");
+	SetConsoleCP(CP_UTF8);
+	SetConsoleOutputCP(CP_UTF8);
+
+
 	auto f = []()
 	{
 		ioService.run();
@@ -269,7 +448,8 @@ int main(int argc, char* argv[])
 	{
 		//streamPlaylist(listOfFiles);
 
-		streamAudio();
+		//streamAudio();
+		streamAudioAndPlaylist();
 
 
 	} while (true);
