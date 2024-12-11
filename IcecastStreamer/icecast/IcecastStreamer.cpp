@@ -749,7 +749,8 @@ bool IcecastStreamer::streamVoiceInner(std::shared_ptr<boost::asio::ip::tcp::soc
 
 	bool keepGoing = true;
 
-	std::shared_ptr<VoiceDecoder> reader = std::make_shared<VoiceDecoder>(audioData);
+	//std::shared_ptr<VoiceDecoder> reader = std::make_shared<VoiceDecoder>(audioData);
+	std::shared_ptr<VoiceDecoderConvertFrom48000> reader = std::make_shared<VoiceDecoderConvertFrom48000>(audioData);
 
 
 	while (keepGoing)

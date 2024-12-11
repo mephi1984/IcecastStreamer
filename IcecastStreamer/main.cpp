@@ -157,14 +157,14 @@ void streamAudio()
 
 	
 	//Regular recording
-
+	/*
 	PaStream* stream;
-	Pa_OpenDefaultStream(&stream, NUM_CHANNELS, 0, paInt16, SAMPLE_RATE,
+	Pa_OpenDefaultStream(&stream, NUM_CHANNELS, 0, paInt16, 48000,
 		FRAMES_PER_BUFFER, recordCallback, audioDataList.get());
 	Pa_StartStream(stream);
-	
+*/	
 
-	/*
+	
 	int numDevices = Pa_GetDeviceCount();
 	if (numDevices < 0) {
 		std::cerr << "Ошибка при получении списка устройств: " << Pa_GetErrorText(numDevices) << std::endl;
@@ -175,13 +175,13 @@ void streamAudio()
 	for (int i = 0; i < numDevices; ++i) {
 		const PaDeviceInfo* deviceInfo = Pa_GetDeviceInfo(i);
 		std::cout << "Device " << i << ": " << deviceInfo->name << "\n";
-	}*/
+	}
 	
-	/*
+	
 	//Loopback
 	
-	//PaDeviceIndex deviceIndex = Pa_GetHostApiInfo(PaHostApiTypeId::paWASAPI)->defaultOutputDevice;
-	PaDeviceIndex deviceIndex = 3;
+	PaDeviceIndex deviceIndex = Pa_GetHostApiInfo(PaHostApiTypeId::paWASAPI)->defaultOutputDevice;
+	//PaDeviceIndex deviceIndex = 3;
 	PaStreamParameters inputParameters;
 	inputParameters.device = deviceIndex;
 	inputParameters.channelCount = NUM_CHANNELS;
@@ -191,7 +191,7 @@ void streamAudio()
 	
 	PaStream* stream;
 	Pa_OpenStream(&stream, &inputParameters, nullptr, SAMPLE_RATE, FRAMES_PER_BUFFER, paClipOff, recordCallback, audioDataList.get());
-	Pa_StartStream(stream);*/
+	Pa_StartStream(stream);
 	
 	std::cout << "Recording for 1 seconds..." << std::endl;
 	Pa_Sleep(1000);
@@ -279,7 +279,7 @@ void streamAudioAndPlaylist()
 	//Regular recording
 	/*
 	PaStream* stream;
-	Pa_OpenDefaultStream(&stream, NUM_CHANNELS, 0, paInt16, SAMPLE_RATE,
+	Pa_OpenDefaultStream(&stream, NUM_CHANNELS, 0, paInt16, 48000,
 		FRAMES_PER_BUFFER, recordCallback, audioDataList.get());
 	Pa_StartStream(stream);
 	*/
@@ -294,14 +294,14 @@ void streamAudioAndPlaylist()
 	std::cout << "Список доступных аудиоустройств:\n";
 	for (int i = 0; i < numDevices; ++i) {
 		const PaDeviceInfo* deviceInfo = Pa_GetDeviceInfo(i);
-		std::cout << "Device " << i << ": " << deviceInfo->name << "\n";
+		std::cout << "Device " << i << ": " << deviceInfo->name << " " << deviceInfo->defaultSampleRate << "\n";
 	}
 
 	
 	//Loopback
 
 	//PaDeviceIndex deviceIndex = Pa_GetHostApiInfo(PaHostApiTypeId::paWASAPI)->defaultOutputDevice;
-	PaDeviceIndex deviceIndex = 18;
+	PaDeviceIndex deviceIndex = 21;
 	PaStreamParameters inputParameters;
 	inputParameters.device = deviceIndex;
 	inputParameters.channelCount = NUM_CHANNELS;
@@ -310,9 +310,9 @@ void streamAudioAndPlaylist()
 	inputParameters.hostApiSpecificStreamInfo = nullptr;
 
 	PaStream* stream;
-	Pa_OpenStream(&stream, &inputParameters, nullptr, SAMPLE_RATE, FRAMES_PER_BUFFER, paClipOff, recordCallback, audioDataList.get());
+	Pa_OpenStream(&stream, &inputParameters, nullptr, 48000, FRAMES_PER_BUFFER, paClipOff, recordCallback, audioDataList.get());
 	Pa_StartStream(stream);
-
+	
 	std::cout << "Recording for 5.0 seconds..." << std::endl;
 	Pa_Sleep(5000);
 
