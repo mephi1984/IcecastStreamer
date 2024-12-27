@@ -301,7 +301,7 @@ void streamAudioAndPlaylist()
 	//Loopback
 
 	//PaDeviceIndex deviceIndex = Pa_GetHostApiInfo(PaHostApiTypeId::paWASAPI)->defaultOutputDevice;
-	PaDeviceIndex deviceIndex = 21;
+	PaDeviceIndex deviceIndex = 18;
 	PaStreamParameters inputParameters;
 	inputParameters.device = deviceIndex;
 	inputParameters.channelCount = NUM_CHANNELS;

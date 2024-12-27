@@ -336,7 +336,7 @@ ASALocalRun/
 *.aac
 
 # Binary file itself
-icecastStreamer
+./icecastStreamer
 
 # Log file
 log.txt
